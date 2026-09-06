@@ -172,7 +172,6 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             <div class="top-title">${cfg.title}</div>
           ` : b `<div class="top-title"></div>`}
           <div class="top-spacer"></div>
-		  gozah
         </div>
 
         ${showNavigation ? b `

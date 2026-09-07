@@ -1,6 +1,5 @@
 {
   "name": "TV Streamer Remote",
-  "icon": "mdi:remote",  
   "render_readme": true,
   "filename": "google-tv-remote-card.js",
   "category": "lovelace"

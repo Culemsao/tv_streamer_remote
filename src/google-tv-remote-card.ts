@@ -1,27 +1,31 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { AppDef, GoogleTVRemoteConfig } from "./types.js";
 
-interface RemoteCardConfig {
-  remote_entity: string;
-  media_entity: string;
-  volume_entity?: string;
-  title?: string;
-  show_title?: boolean;
-  show_navigation?: boolean;
-  show_buttons?: boolean;
-  show_volume?: boolean;
-  label_navigation?: string;
-  label_volume?: string;
-}
+const ALL_APPS: AppDef[] = [
+  { name: "Netflix",     scheme: "netflix://",        match: ["netflix"] },
+  { name: "NLZiet",      scheme: "nlziet://",         match: ["nlziet"] },
+  { name: "Spotify",     scheme: "spotify://",        match: ["spotify"] },
+  { name: "YouTube",     scheme: "youtube.com",       match: ["youtube"] },
+  { name: "Videoland",   scheme: "videoland-v2://",   match: ["videoland"] },
+  { name: "Disney+",     scheme: "disneyplus.com",    match: ["disney"] },
+  { name: "Prime Video", scheme: "primevideo.com",    match: ["prime", "amazon"] },
+  { name: "Viaplay",     scheme: "viaplay://",        match: ["viaplay"] },
+  { name: "Max",         scheme: "max.com",           match: ["max", "hbo"] },
+  { name: "Plex",        scheme: "plex://",           match: ["plex"] },
+  { name: "Kodi",        scheme: "kodi://",           match: ["kodi"] },
+];
+
+const DEFAULT_APPS = ["Netflix", "NLZiet", "Spotify"];
 
 @customElement("google-tv-remote-card")
 export class GoogleTVRemoteCard extends LitElement {
   @property({ attribute: false }) hass: any;
-  @property({ attribute: false }) config!: RemoteCardConfig;
+  @property({ attribute: false }) config!: GoogleTVRemoteConfig;
   @state() private _volume = 0.4;
   @state() private _muted = false;
 
-  setConfig(config: RemoteCardConfig) {
+  setConfig(config: GoogleTVRemoteConfig) {
     if (!config.remote_entity || !config.media_entity) {
       throw new Error("remote_entity and media_entity are required");
     }
@@ -44,6 +48,25 @@ export class GoogleTVRemoteCard extends LitElement {
   private get _isOn(): boolean {
     const state = this.hass?.states[this.config.media_entity];
     return state?.state !== "off" && state?.state !== "unavailable" && state?.state !== undefined;
+  }
+
+  private get _activeApp(): string {
+    const state = this.hass?.states[this.config.media_entity];
+    const appId   = (state?.attributes?.app_id   ?? "").toLowerCase();
+    const appName = (state?.attributes?.app_name ?? "").toLowerCase();
+    return appId + " " + appName;
+  }
+
+  private _isAppActive(app: AppDef): boolean {
+    const active = this._activeApp;
+    return app.match.some(m => active.includes(m));
+  }
+
+  private get _visibleApps(): AppDef[] {
+    const names = this.config.apps ?? DEFAULT_APPS;
+    return names
+      .map(n => ALL_APPS.find(a => a.name.toLowerCase() === n.toLowerCase()))
+      .filter(Boolean) as AppDef[];
   }
 
   static styles = css`
@@ -78,7 +101,6 @@ export class GoogleTVRemoteCard extends LitElement {
       margin: 0 4px;
     }
 
-    /* Top row with power button */
     .top-row {
       display: flex;
       align-items: center;
@@ -125,7 +147,6 @@ export class GoogleTVRemoteCard extends LitElement {
       flex-shrink: 0;
     }
 
-    /* D-pad */
     .pad {
       width: 220px;
       height: 220px;
@@ -194,7 +215,6 @@ export class GoogleTVRemoteCard extends LitElement {
       color: #111;
     }
 
-    /* Bottom buttons */
     .btn-row {
       display: flex;
       justify-content: center;
@@ -227,7 +247,40 @@ export class GoogleTVRemoteCard extends LitElement {
       color: #666;
     }
 
-    /* Volume */
+    .app-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .app-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      height: 34px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+      transition: background 0.1s, transform 0.1s, border-color 0.1s, color 0.1s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+    .app-btn:active {
+      transform: scale(0.93);
+      background: #f0f0f0;
+    }
+    .app-btn.active {
+      background: #378ADD18;
+      border-color: #378ADD88;
+      color: #378ADD;
+    }
+
     .vol-wrap {
       display: flex;
       align-items: center;
@@ -283,6 +336,13 @@ export class GoogleTVRemoteCard extends LitElement {
     this.call(service, { entity_id: this.config.media_entity });
   }
 
+  private openApp(app: AppDef) {
+    this.call("remote.turn_on", {
+      entity_id: this.config.remote_entity,
+      activity: app.scheme,
+    });
+  }
+
   private get _volEntity(): string {
     return this.config.volume_entity ?? this.config.media_entity;
   }
@@ -313,14 +373,16 @@ export class GoogleTVRemoteCard extends LitElement {
   }
 
   render() {
-    const cfg = this.config;
+    const cfg            = this.config;
     const showTitle      = cfg.show_title      !== false;
     const showNavigation = cfg.show_navigation !== false;
     const showButtons    = cfg.show_buttons    !== false;
+    const showApps       = cfg.show_apps       !== false;
     const showVolume     = cfg.show_volume     !== false;
     const lblNavigation  = cfg.label_navigation ?? "navigatie";
     const lblVolume      = cfg.label_volume     ?? "volume";
     const isOn           = this._isOn;
+    const apps           = this._visibleApps;
 
     return html`
       <div class="remote">
@@ -369,6 +431,21 @@ export class GoogleTVRemoteCard extends LitElement {
               <ha-icon icon="mdi:home"></ha-icon>
               <span>home</span>
             </div>
+          </div>
+        ` : nothing}
+
+        ${showApps && apps.length > 0 ? html`
+          <div class="hr"></div>
+          <div class="app-row">
+            ${apps.map(app => html`
+              <div
+                class="app-btn ${this._isAppActive(app) ? "active" : ""}"
+                @click=${() => this.openApp(app)}
+                title=${app.name}
+              >
+                ${app.name}
+              </div>
+            `)}
           </div>
         ` : nothing}
 

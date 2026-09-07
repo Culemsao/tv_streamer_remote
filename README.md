@@ -69,5 +69,3 @@ show_title: false
 show_volume: false
 label_navigation: ""
 ```
-
-manual reset repo

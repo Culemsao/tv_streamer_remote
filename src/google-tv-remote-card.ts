@@ -15,7 +15,7 @@ const DEFAULT_APPS: Record<string, { name: string; activity: string; icon: strin
   max: { name: 'Max (HBO)', activity: 'max.com', icon: 'mdi:movie-roll' },
   plex: { name: 'Plex', activity: 'plex://', icon: 'mdi:plex' },
   kodi: { name: 'Kodi', activity: 'kodi://', icon: 'mdi:kodi' },
-};
+}; 
 
 @customElement("google-tv-remote-card")
 export class GoogleTVRemoteCard extends LitElement {

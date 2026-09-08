@@ -44,11 +44,17 @@ export class GoogleTVRemoteCard extends LitElement {
     } 
   } 
 
+  // GECORRIGEERD: Volledig omgebouwd naar de officiële Home Assistant Action-structuur
   private _launchApp(activity: string): void { 
     if (!this.config || !this.hass) return; 
-    this.hass.callService('remote', 'turn_on', { 
-      entity_id: this.config.remote_entity, 
-      data: { activity: activity } 
+    
+    this.hass.callAction('remote', 'turn_on', { 
+      target: {
+        entity_id: this.config.remote_entity
+      },
+      data: { 
+        activity: activity 
+      } 
     }); 
   } 
 
@@ -59,12 +65,17 @@ export class GoogleTVRemoteCard extends LitElement {
 
   private togglePower() { 
     if (!this.config || !this.hass) return; 
-    this.hass.callService('remote', 'toggle', { entity_id: this.config.remote_entity }); 
+    this.hass.callAction('remote', 'toggle', { 
+      target: { entity_id: this.config.remote_entity } 
+    }); 
   } 
 
   private sendKey(key: string) { 
     if (!this.config || !this.hass) return; 
-    this.hass.callService('remote', 'send_command', { entity_id: this.config.remote_entity, command: key }); 
+    this.hass.callAction('remote', 'send_command', { 
+      target: { entity_id: this.config.remote_entity },
+      data: { command: key }
+    }); 
   } 
 
   private volStep(step: number) { 
@@ -73,9 +84,9 @@ export class GoogleTVRemoteCard extends LitElement {
     let newVol = this._volume + step; 
     if (newVol > 1) newVol = 1; 
     if (newVol < 0) newVol = 0; 
-    this.hass.callService('media_player', 'volume_set', { 
-      entity_id: entity, 
-      volume_level: newVol 
+    this.hass.callAction('media_player', 'volume_set', { 
+      target: { entity_id: entity },
+      data: { volume_level: newVol }
     }); 
   } 
 
@@ -83,20 +94,21 @@ export class GoogleTVRemoteCard extends LitElement {
     if (!this.config || !this.hass) return; 
     const entity = this.config.volume_entity ?? this.config.media_entity; 
     const newVol = parseFloat(e.target.value); 
-    this.hass.callService('media_player', 'volume_set', { 
-      entity_id: entity, 
-      volume_level: newVol 
+    this.hass.callAction('media_player', 'volume_set', { 
+      target: { entity_id: entity },
+      data: { volume_level: newVol }
     }); 
   } 
 
   private toggleMute() { 
     if (!this.config || !this.hass) return; 
     const entity = this.config.volume_entity ?? this.config.media_entity; 
-    this.hass.callService('media_player', 'volume_mute', { 
-      entity_id: entity, 
-      is_volume_muted: !this._muted 
+    this.hass.callAction('media_player', 'volume_mute', { 
+      target: { entity_id: entity },
+      data: { is_volume_muted: !this._muted }
     }); 
   } 
+
   render() { 
     const cfg = this.config; 
     const showTitle      = cfg.show_title      !== false; 

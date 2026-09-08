@@ -72,20 +72,20 @@ const t=t=>(e,o)=>{void 0!==o?o.addInitializer(()=>{customElements.define(t,e);}
  * SPDX-License-Identifier: BSD-3-Clause
  */function r(r){return n({...r,state:!0,attribute:!1})}
 
-const ALL_APPS = [
-    { name: "Netflix", scheme: "netflix://", match: ["netflix"] },
-    { name: "NLZiet", scheme: "nlziet://", match: ["nlziet"] },
-    { name: "Spotify", scheme: "spotify://", match: ["spotify"] },
-    { name: "YouTube", scheme: "youtube.com", match: ["youtube"] },
-    { name: "Videoland", scheme: "videoland-v2://", match: ["videoland"] },
-    { name: "Disney+", scheme: "disneyplus.com", match: ["disney"] },
-    { name: "Prime Video", scheme: "primevideo.com", match: ["prime", "amazon"] },
-    { name: "Viaplay", scheme: "viaplay://", match: ["viaplay"] },
-    { name: "Max", scheme: "max.com", match: ["max", "hbo"] },
-    { name: "Plex", scheme: "plex://", match: ["plex"] },
-    { name: "Kodi", scheme: "kodi://", match: ["kodi"] },
-];
-const DEFAULT_APPS = ["Netflix", "NLZiet", "Spotify"];
+// Vooraf gedefinieerde app-lijst met URL-schema's en icons
+const DEFAULT_APPS = {
+    netflix: { name: 'Netflix', activity: 'netflix://', icon: 'mdi:netflix' },
+    nlziet: { name: 'NLZIET', activity: 'nlziet://', icon: 'mdi:television-play' },
+    spotify: { name: 'Spotify', activity: 'spotify://', icon: 'mdi:spotify' },
+    youtube: { name: 'YouTube', activity: 'youtube.com', icon: 'mdi:youtube' },
+    videoland: { name: 'Videoland', activity: 'videoland-v2://', icon: 'mdi:play-box' },
+    disneyplus: { name: 'Disney+', activity: 'disneyplus.com', icon: 'mdi:television-classic' },
+    primevideo: { name: 'Prime Video', activity: 'primevideo.com', icon: 'mdi:video' },
+    viaplay: { name: 'Viaplay', activity: 'viaplay://', icon: 'mdi:sports-car' },
+    max: { name: 'Max (HBO)', activity: 'max.com', icon: 'mdi:movie-roll' },
+    plex: { name: 'Plex', activity: 'plex://', icon: 'mdi:plex' },
+    kodi: { name: 'Kodi', activity: 'kodi://', icon: 'mdi:kodi' },
+};
 let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
     constructor() {
         super(...arguments);
@@ -110,67 +110,61 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             }
         }
     }
+    // Stuurt het juiste activity commando naar de remote entiteit
+    _launchApp(activity) {
+        if (!this.config || !this.hass)
+            return;
+        this.hass.callService('remote', 'turn_on', {
+            entity_id: this.config.remote_entity,
+            data: {
+                activity: activity
+            }
+        });
+    }
     get _isOn() {
         const state = this.hass?.states[this.config.media_entity];
         return state?.state !== "off" && state?.state !== "unavailable" && state?.state !== undefined;
     }
-    get _activeApp() {
-        const state = this.hass?.states[this.config.media_entity];
-        const appId = (state?.attributes?.app_id ?? "").toLowerCase();
-        const appName = (state?.attributes?.app_name ?? "").toLowerCase();
-        return appId + " " + appName;
-    }
-    _isAppActive(app) {
-        const active = this._activeApp;
-        return app.match.some(m => active.includes(m));
-    }
-    get _visibleApps() {
-        const names = this.config.apps ?? DEFAULT_APPS;
-        return names
-            .map(n => ALL_APPS.find(a => a.name.toLowerCase() === n.toLowerCase()))
-            .filter(Boolean);
-    }
-    call(service, data) {
-        this.hass.callService(service.split(".")[0], service.split(".")[1], data);
+    // Originele interactiefuncties voor de remote knoppen
+    togglePower() {
+        if (!this.config || !this.hass)
+            return;
+        this.hass.callService('remote', 'toggle', {
+            entity_id: this.config.remote_entity
+        });
     }
     sendKey(key) {
-        this.call("remote.send_command", {
+        if (!this.config || !this.hass)
+            return;
+        this.hass.callService('remote', 'send_command', {
             entity_id: this.config.remote_entity,
-            command: key,
+            command: key
         });
     }
-    togglePower() {
-        const service = this._isOn ? "media_player.turn_off" : "media_player.turn_on";
-        this.call(service, { entity_id: this.config.media_entity });
-    }
-    openApp(app) {
-        this.call("remote.turn_on", {
-            entity_id: this.config.remote_entity,
-            activity: app.scheme,
-        });
-    }
-    get _volEntity() {
-        return this.config.volume_entity ?? this.config.media_entity;
-    }
-    setVolume(v) {
-        v = Math.max(0, Math.min(1, Math.round(v * 100) / 100));
-        this._volume = v;
-        this.call("media_player.volume_set", {
-            entity_id: this._volEntity,
-            volume_level: v,
+    volStep(step) {
+        if (!this.config || !this.hass)
+            return;
+        const newVol = Math.min(1, Math.max(0, this._volume + step));
+        this.hass.callService('media_player', 'volume_set', {
+            entity_id: this.config.media_entity,
+            volume_level: newVol
         });
     }
     onSlider(e) {
-        this.setVolume(parseFloat(e.target.value));
-    }
-    volStep(delta) {
-        this.setVolume(this._volume + delta);
+        if (!this.config || !this.hass)
+            return;
+        const newVol = parseFloat(e.target.value);
+        this.hass.callService('media_player', 'volume_set', {
+            entity_id: this.config.media_entity,
+            volume_level: newVol
+        });
     }
     toggleMute() {
-        this._muted = !this._muted;
-        this.call("media_player.volume_mute", {
-            entity_id: this._volEntity,
-            is_volume_muted: this._muted,
+        if (!this.config || !this.hass)
+            return;
+        this.hass.callService('media_player', 'volume_mute', {
+            entity_id: this.config.media_entity,
+            is_volume_muted: !this._muted
         });
     }
     render() {
@@ -183,7 +177,8 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
         const lblNavigation = cfg.label_navigation ?? "navigatie";
         const lblVolume = cfg.label_volume ?? "volume";
         const isOn = this._isOn;
-        const apps = this._visibleApps;
+        // Valt terug op Netflix, NLZIET en Spotify als er niks is ingevuld in YAML
+        const configuredApps = cfg?.apps || ['netflix', 'nlziet', 'spotify'];
         return b `
       <div class="remote">
 
@@ -234,20 +229,37 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
           </div>
         ` : A}
 
-        ${showApps && apps.length > 0 ? b `
+        <!-- APPS BALK -->
+        ${showApps ? b `
           <div class="hr"></div>
           <div class="app-row">
-            ${apps.map(app => b `
-              <div
-                class="app-btn ${this._isAppActive(app) ? "active" : ""}"
-                @click=${() => this.openApp(app)}
-                title=${app.name}
-              >
-                ${app.name}
-              </div>
-            `)}
+            ${configuredApps.map((appKeyOrObj) => {
+            let name = '';
+            let activity = '';
+            let icon = 'mdi:apps';
+            if (typeof appKeyOrObj === 'string' && DEFAULT_APPS[appKeyOrObj]) {
+                name = DEFAULT_APPS[appKeyOrObj].name;
+                activity = DEFAULT_APPS[appKeyOrObj].activity;
+                icon = DEFAULT_APPS[appKeyOrObj].icon;
+            }
+            else if (typeof appKeyOrObj === 'object') {
+                name = appKeyOrObj.name || '';
+                activity = appKeyOrObj.activity || '';
+                icon = appKeyOrObj.icon || 'mdi:apps';
+            }
+            if (!activity)
+                return b ``;
+            return b `
+                <ha-icon-button
+                  .title="${name}"
+                  @click="${() => this._launchApp(activity)}"
+                >
+                  <ha-icon .icon="${icon}"></ha-icon>
+                </ha-icon-button>
+              `;
+        })}
           </div>
-        ` : A}
+        ` : A}      
 
         ${showVolume ? b `
           <div class="hr"></div>
@@ -279,257 +291,124 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
       </div>
     `;
     }
+    static get styles() {
+        return i$3 `
+      :host {
+        display: block;
+      }
+      .remote {
+        padding: 16px;
+      }
+      .top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .power-btn {
+        cursor: pointer;
+      }
+      .power-btn.on {
+        color: var(--primary-color);
+      }
+      .power-btn.off {
+        color: var(--disabled-text-color);
+      }
+      .top-title {
+        font-weight: bold;
+      }
+      .lbl {
+        text-align: center;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        font-size: 0.8em;
+        color: var(--secondary-text-color);
+      }
+      .pad {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        margin: 20px auto;
+      }
+      .arr {
+        position: absolute;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .arr.u { top: 0; left: 60px; width: 40px; height: 40px; }
+      .arr.d { bottom: 0; left: 60px; width: 40px; height: 40px; }
+      .arr.l { top: 60px; left: 0; width: 40px; height: 40px; }
+      .arr.r { top: 60px; right: 0; width: 40px; height: 40px; }
+      .ok {
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        width: 60px;
+        height: 60px;
+        background: var(--primary-background-color);
+        border: 1px solid var(--divider-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-row {
+        display: flex;
+        justify-content: space-around;
+        margin: 15px 0;
+      }
+      .btn {
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.9em;
+      }
+      .app-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin: 10px 0;
+        padding: 0 10px;
+        flex-wrap: wrap;
+      }
+      .app-row ha-icon-button {
+        color: var(--primary-text-color);
+        background-color: var(--secondary-background-color);
+        border-radius: 50%;
+        --mdc-icon-button-size: 44px;
+      }
+      .app-row ha-icon-button:active {
+        background-color: var(--divider-color);
+      }
+      .hr {
+        height: 1px;
+        background-color: var(--divider-color);
+        margin: 10px 0;
+      }
+      .vol-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .vol-btn {
+        cursor: pointer;
+      }
+      .vol-btn.muted {
+        color: var(--error-color);
+      }
+      input[type="range"] {
+        flex: 1;
+      }
+    `;
+    }
 };
-GoogleTVRemoteCard.styles = i$3 `
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    .remote {
-      width: 280px;
-      margin: 0 auto;
-      background: #f5f5f5;
-      border-radius: 40px;
-      padding: 28px 22px 36px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      font-family: sans-serif;
-    }
-
-    .lbl {
-      font-size: 10px;
-      color: #999;
-      text-align: center;
-      letter-spacing: 0.08em;
-    }
-
-    .hr {
-      height: 1px;
-      background: #e0e0e0;
-      margin: 0 4px;
-    }
-
-    .top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 34px;
-    }
-    .power-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: #fff;
-      border: 1px solid #ddd;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.1s, transform 0.1s;
-      -webkit-tap-highlight-color: transparent;
-      --mdc-icon-size: 20px;
-      color: #aaa;
-    }
-    .power-btn:active {
-      transform: scale(0.92);
-      background: #f0f0f0;
-    }
-    .power-btn.on {
-      border-color: #4CAF5066;
-      color: #4CAF50;
-    }
-    .power-btn.off {
-      border-color: #ddd;
-      color: #aaa;
-    }
-    .top-title {
-      flex: 1;
-      text-align: center;
-      font-size: 10px;
-      color: #999;
-      letter-spacing: 0.08em;
-    }
-    .top-spacer {
-      width: 34px;
-      flex-shrink: 0;
-    }
-
-    .pad {
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: #fff;
-      border: 1px solid #ddd;
-      margin: 0 auto;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .arr {
-      position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 80px;
-      height: 80px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .arr.u { top: 0;    left: 50%; transform: translateX(-50%); }
-    .arr.d { bottom: 0; left: 50%; transform: translateX(-50%); }
-    .arr.l { left: 0;   top: 50%; transform: translateY(-50%); }
-    .arr.r { right: 0;  top: 50%; transform: translateY(-50%); }
-
-    .icon-wrap {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      --mdc-icon-size: 28px;
-      color: #666;
-      transition: background 0.1s, color 0.08s;
-    }
-    .arr:active .icon-wrap {
-      background: #f0f0f0;
-      color: #111;
-    }
-
-    .ok {
-      width: 78px;
-      height: 78px;
-      border-radius: 50%;
-      background: #f0f0f0;
-      border: 1px solid #ddd;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 500;
-      color: #333;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: background 0.1s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .ok:active {
-      background: #e0e0e0;
-      color: #111;
-    }
-
-    .btn-row {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-    }
-    .btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 18px;
-      width: 80px;
-      height: 72px;
-      cursor: pointer;
-      font-size: 11px;
-      color: #666;
-      transition: transform 0.1s, background 0.1s;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn:active {
-      transform: scale(0.92);
-      background: #f0f0f0;
-    }
-    .btn ha-icon {
-      --mdc-icon-size: 26px;
-      color: #666;
-    }
-
-    .app-row {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .app-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 14px;
-      height: 34px;
-      border-radius: 10px;
-      background: #fff;
-      border: 1px solid #ddd;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-      color: #666;
-      transition: background 0.1s, transform 0.1s, border-color 0.1s, color 0.1s;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      white-space: nowrap;
-    }
-    .app-btn:active {
-      transform: scale(0.93);
-      background: #f0f0f0;
-    }
-    .app-btn.active {
-      background: #378ADD18;
-      border-color: #378ADD88;
-      color: #378ADD;
-    }
-
-    .vol-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .vol-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: #fff;
-      border: 1px solid #ddd;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.1s, transform 0.1s;
-      -webkit-tap-highlight-color: transparent;
-      --mdc-icon-size: 18px;
-      color: #666;
-    }
-    .vol-btn:active {
-      background: #f0f0f0;
-      transform: scale(0.92);
-    }
-    .vol-btn.muted {
-      border-color: #c0392b66;
-      color: #c0392b;
-    }
-    input[type="range"] {
-      width: 120px;
-      height: 4px;
-      accent-color: #378ADD;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-  `;
 __decorate([
     n({ attribute: false })
 ], GoogleTVRemoteCard.prototype, "hass", void 0);

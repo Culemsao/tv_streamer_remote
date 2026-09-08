@@ -44,17 +44,13 @@ export class GoogleTVRemoteCard extends LitElement {
     } 
   } 
 
-  // GECORRIGEERD: Vertaalt callService nu exact naar de gevraagde YAML-structuur met target en data
+  // GECORRIGEERD: Haalt 'target' weg en stuurt 'entity_id' en 'activity' direct mee
   private _launchApp(activity: string): void { 
     if (!this.config || !this.hass) return; 
     
     this.hass.callService('remote', 'turn_on', { 
-      target: {
-        entity_id: this.config.remote_entity
-      },
-      data: { 
-        activity: activity 
-      } 
+      entity_id: this.config.remote_entity, 
+      activity: activity 
     }); 
   } 
 
@@ -65,16 +61,16 @@ export class GoogleTVRemoteCard extends LitElement {
 
   private togglePower() { 
     if (!this.config || !this.hass) return; 
-    this.hass.callService('remote', 'toggle', {
-      entity_id: this.config.remote_entity
+    this.hass.callService('remote', 'toggle', { 
+      entity_id: this.config.remote_entity 
     }); 
   } 
 
   private sendKey(key: string) { 
     if (!this.config || !this.hass) return; 
     this.hass.callService('remote', 'send_command', { 
-      entity_id: this.config.remote_entity,
-      command: key
+      entity_id: this.config.remote_entity, 
+      command: key 
     }); 
   } 
 
@@ -85,8 +81,8 @@ export class GoogleTVRemoteCard extends LitElement {
     if (newVol > 1) newVol = 1; 
     if (newVol < 0) newVol = 0; 
     this.hass.callService('media_player', 'volume_set', { 
-      entity_id: entity,
-      volume_level: newVol
+      entity_id: entity, 
+      volume_level: newVol 
     }); 
   } 
 
@@ -95,8 +91,8 @@ export class GoogleTVRemoteCard extends LitElement {
     const entity = this.config.volume_entity ?? this.config.media_entity; 
     const newVol = parseFloat(e.target.value); 
     this.hass.callService('media_player', 'volume_set', { 
-      entity_id: entity,
-      volume_level: newVol
+      entity_id: entity, 
+      volume_level: newVol 
     }); 
   } 
 
@@ -104,8 +100,8 @@ export class GoogleTVRemoteCard extends LitElement {
     if (!this.config || !this.hass) return; 
     const entity = this.config.volume_entity ?? this.config.media_entity; 
     this.hass.callService('media_player', 'volume_mute', { 
-      entity_id: entity,
-      is_volume_muted: !this._muted
+      entity_id: entity, 
+      is_volume_muted: !this._muted 
     }); 
   } 
   render() { 

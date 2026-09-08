@@ -114,12 +114,12 @@ export class GoogleTVRemoteCard extends LitElement {
 
         <div class="top-row">
           <div class="power-btn ${isOn ? "on" : "off"}" @click=${this.togglePower} title=${isOn ? "Turn off" : "Turn on"}>
-            <ha-icon icon="mdi:power"/>
+            <ha-icon icon="mdi:power"></ha-icon>
           </div>
           ${showTitle && cfg.title ? html`
             <div class="top-title">${cfg.title}</div>
-          ` : html`<div class="top-title"/>`}
-          <div class="top-spacer"/>
+          ` : html`<div class="top-title"></div>`}
+          <div class="top-spacer"></div>
         </div>
 
         ${showNavigation ? html`
@@ -127,22 +127,22 @@ export class GoogleTVRemoteCard extends LitElement {
           <div class="pad">
             <div class="arr u" @click=${() => this.sendKey("DPAD_UP")}>
               <div class="icon-wrap">
-                <ha-icon icon="mdi:chevron-up"/>
+                <ha-icon icon="mdi:chevron-up"></ha-icon>
               </div>
             </div>
             <div class="arr d" @click=${() => this.sendKey("DPAD_DOWN")}>
               <div class="icon-wrap">
-                <ha-icon icon="mdi:chevron-down"/>
+                <ha-icon icon="mdi:chevron-down"></ha-icon>
               </div>
             </div>
             <div class="arr l" @click=${() => this.sendKey("DPAD_LEFT")}>
               <div class="icon-wrap">
-                <ha-icon icon="mdi:chevron-left"/>
+                <ha-icon icon="mdi:chevron-left"></ha-icon>
               </div>
             </div>
             <div class="arr r" @click=${() => this.sendKey("DPAD_RIGHT")}>
               <div class="icon-wrap">
-                <ha-icon icon="mdi:chevron-right"/>
+                <ha-icon icon="mdi:chevron-right"></ha-icon>
               </div>
             </div>
             <div class="ok" @click=${() => this.sendKey("DPAD_CENTER")}>ok</div>
@@ -150,14 +150,14 @@ export class GoogleTVRemoteCard extends LitElement {
         ` : nothing}
 
         ${showButtons ? html`
-          <div class="hr"/>
+          <div class="hr"></div>
           <div class="btn-row">
             <div class="btn" @click=${() => this.sendKey("BACK")}>
-              <ha-icon icon="mdi:arrow-u-left-top"/>
+              <ha-icon icon="mdi:arrow-u-left-top"></ha-icon>
               <span>terug</span>
             </div>
             <div class="btn" @click=${() => this.sendKey("HOME")}>
-              <ha-icon icon="mdi:home"/>
+              <ha-icon icon="mdi:home"></ha-icon>
               <span>home</span>
             </div>
           </div>
@@ -165,7 +165,7 @@ export class GoogleTVRemoteCard extends LitElement {
 
         <!-- APPS BALK -->
         ${showApps ? html`
-          <div class="hr"/>
+          <div class="hr"></div>
           <div class="app-row">
             ${configuredApps.map((appKeyOrObj: string | any) => { 
               let name = ''; 
@@ -186,7 +186,7 @@ export class GoogleTVRemoteCard extends LitElement {
 
               return html`
                 <ha-icon-button .title="${name}" @click="${() => this._launchApp(activity)}">
-                  <ha-icon .icon="${icon}"/>
+                  <ha-icon .icon="${icon}"></ha-icon>
                 </ha-icon-button>
               `; 
             })}
@@ -194,18 +194,18 @@ export class GoogleTVRemoteCard extends LitElement {
         ` : nothing}      
 
         ${showVolume ? html`
-          <div class="hr"/>
+          <div class="hr"></div>
           ${lblVolume ? html`<div class="lbl">${lblVolume}</div>` : nothing}
           <div class="vol-wrap">
             <div class="vol-btn" @click=${() => this.volStep(-0.02)}>
-              <ha-icon icon="mdi:minus"/>
+              <ha-icon icon="mdi:minus"></ha-icon>
             </div>
             <input type="range" min="0" max="1" step="0.02" .value=${String(this._volume)} @input=${this.onSlider}/>
             <div class="vol-btn" @click=${() => this.volStep(0.02)}>
-              <ha-icon icon="mdi:plus"/>
+              <ha-icon icon="mdi:plus"></ha-icon>
             </div>
             <div class="vol-btn ${this._muted ? "muted" : ""}" @click=${this.toggleMute}>
-              <ha-icon icon=${this._muted ? "mdi:volume-off" : "mdi:volume-high"}/>
+              <ha-icon icon=${this._muted ? "mdi:volume-off" : "mdi:volume-high"}></ha-icon>
             </div>
           </div>
         ` : nothing}
@@ -213,7 +213,6 @@ export class GoogleTVRemoteCard extends LitElement {
       </div>
     `; 
   } 
-
   static styles = css`
     * {
       box-sizing: border-box;

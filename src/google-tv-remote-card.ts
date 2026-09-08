@@ -254,8 +254,7 @@ export class GoogleTVRemoteCard extends LitElement {
       width: 34px;
       flex-shrink: 0;
     }
-
-    /* D-pad */
+        /* D-pad */
     .pad {
       width: 220px;
       height: 220px;
@@ -418,4 +417,3 @@ export class GoogleTVRemoteCard extends LitElement {
       cursor: pointer;
       flex-shrink: 0;
     }
-  `;

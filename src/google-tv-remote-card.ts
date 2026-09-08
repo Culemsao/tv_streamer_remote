@@ -67,7 +67,7 @@ export class GoogleTVRemoteCard extends LitElement {
     this.hass.callService('remote', 'toggle', {
       entity_id: this.config.remote_entity
     });
-  }
+  } 
 
   private sendKey(key: string): void {
     if (!this.config || !this.hass) return;

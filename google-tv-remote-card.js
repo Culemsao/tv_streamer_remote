@@ -110,11 +110,11 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             }
         }
     }
-    // GECORRIGEERD: Volledig omgebouwd naar de officiële Home Assistant Action-structuur
+    // GECORRIGEERD: Vertaalt callService nu exact naar de gevraagde YAML-structuur met target en data
     _launchApp(activity) {
         if (!this.config || !this.hass)
             return;
-        this.hass.callAction('remote', 'turn_on', {
+        this.hass.callService('remote', 'turn_on', {
             target: {
                 entity_id: this.config.remote_entity
             },
@@ -130,16 +130,16 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
     togglePower() {
         if (!this.config || !this.hass)
             return;
-        this.hass.callAction('remote', 'toggle', {
-            target: { entity_id: this.config.remote_entity }
+        this.hass.callService('remote', 'toggle', {
+            entity_id: this.config.remote_entity
         });
     }
     sendKey(key) {
         if (!this.config || !this.hass)
             return;
-        this.hass.callAction('remote', 'send_command', {
-            target: { entity_id: this.config.remote_entity },
-            data: { command: key }
+        this.hass.callService('remote', 'send_command', {
+            entity_id: this.config.remote_entity,
+            command: key
         });
     }
     volStep(step) {
@@ -151,9 +151,9 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             newVol = 1;
         if (newVol < 0)
             newVol = 0;
-        this.hass.callAction('media_player', 'volume_set', {
-            target: { entity_id: entity },
-            data: { volume_level: newVol }
+        this.hass.callService('media_player', 'volume_set', {
+            entity_id: entity,
+            volume_level: newVol
         });
     }
     onSlider(e) {
@@ -161,18 +161,18 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             return;
         const entity = this.config.volume_entity ?? this.config.media_entity;
         const newVol = parseFloat(e.target.value);
-        this.hass.callAction('media_player', 'volume_set', {
-            target: { entity_id: entity },
-            data: { volume_level: newVol }
+        this.hass.callService('media_player', 'volume_set', {
+            entity_id: entity,
+            volume_level: newVol
         });
     }
     toggleMute() {
         if (!this.config || !this.hass)
             return;
         const entity = this.config.volume_entity ?? this.config.media_entity;
-        this.hass.callAction('media_player', 'volume_mute', {
-            target: { entity_id: entity },
-            data: { is_volume_muted: !this._muted }
+        this.hass.callService('media_player', 'volume_mute', {
+            entity_id: entity,
+            is_volume_muted: !this._muted
         });
     }
     render() {
@@ -249,24 +249,21 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             let activity = '';
             let icon = 'mdi:apps';
             if (typeof appKeyOrObj === 'string' && DEFAULT_APPS[appKeyOrObj]) {
-                // Gelinkt aan de ingebouwde lijst
                 name = DEFAULT_APPS[appKeyOrObj].name;
                 activity = DEFAULT_APPS[appKeyOrObj].activity;
                 icon = DEFAULT_APPS[appKeyOrObj].icon;
             }
             else if (typeof appKeyOrObj === 'object') {
-                // Handmatige/overgeschreven configuratie vanuit Lovelace YAML
                 const defaultApp = appKeyOrObj.id && DEFAULT_APPS[appKeyOrObj.id] ? DEFAULT_APPS[appKeyOrObj.id] : null;
                 name = appKeyOrObj.name || defaultApp?.name || '';
                 activity = appKeyOrObj.activity || defaultApp?.activity || '';
-                // Gebruik het opgegeven icoon, of val terug op het standaard icoon van die app
                 icon = appKeyOrObj.icon || defaultApp?.icon || 'mdi:apps';
             }
             if (!activity)
                 return b ``;
             return b `
                 <ha-icon-button .title="${name}" @click="${() => this._launchApp(activity)}">
-                  <ha-icon .icon="${icon}"></ha-icon>
+                  <ha-icon icon="${icon}"></ha-icon>
                 </ha-icon-button>
               `;
         })}
@@ -490,8 +487,8 @@ GoogleTVRemoteCard.styles = i$3 `
       background-color: #fff;
       border: 1px solid #ddd;
       border-radius: 50%;
-      --mdc-icon-button-size: 48px; /* Iets grotere knopcontainer voor de balans */
-      --mdc-icon-size: 26px;        /* VERGROOT: De interne iconen zijn nu 26px ipv standaard ~20px */
+      --mdc-icon-button-size: 48px;
+      --mdc-icon-size: 26px;
       transition: transform 0.1s, background 0.1s;
     }
     .app-row ha-icon-button:active {

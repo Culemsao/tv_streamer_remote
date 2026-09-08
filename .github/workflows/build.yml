@@ -2,9 +2,14 @@ name: Build
 
 on:
   push:
-    branches: [main]
-  release:
-    types: [published]
+    branches:
+      - main # Verander naar 'master' als jouw hoofdbranch zo heet
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'rollup.config.js'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

@@ -24,19 +24,23 @@ jobs:
         with:
           node-version: '22'
 
-      # Gecorrigeerd: npm install in plaats van npm ci om de lockfile-fout op te lossen
       - run: npm install
-      
+
+      # Verhoogt automatisch de patch-versie (bijv. v0.1.21 -> v0.1.22)
+      # --no-git-tag-version zorgt ervoor dat er geen zware Git Tag wordt aangemaakt, alleen bestandswijzigingen
+      - name: Bump version
+        run: npm version patch --no-git-tag-version
+
       - run: npm run build
 
-      # Gecorrigeerd: Voegt de gecompileerde .js-file toe in plaats van een niet-bestaande dist/ map
-      - name: Commit build
+      # Neemt nu ook package.json en package-lock.json mee in de commit
+      - name: Commit build and version bump
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@://github.com"
           
-          # Wijzig dit naar 'dist/' als jouw rollup.config.js het tóch in een dist-map zet
-          git add google-tv-remote-card.js
+          # Voeg zowel de aangepaste javascript als de package JSON-bestanden toe
+          git add google-tv-remote-card.js package.json package-lock.json
           
-          git diff --staged --quiet || git commit -m "build: update gecompileerde javascript"
+          git diff --staged --quiet || git commit -m "build: update gecompileerde javascript & versie naar $(node -p "require('./package.json').version")"
           git push

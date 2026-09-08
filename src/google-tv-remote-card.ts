@@ -71,8 +71,46 @@ export class GoogleTVRemoteCard extends LitElement {
     if (!this.config || !this.hass) return; 
     const entity = this.config.volume_entity ?? this.config.media_entity; 
     let newVol = this._volume + step; 
-    if (newVol > 1) newVol = 1;
-    if (newVol 
+    if (newVol > 1) newVol = 1; 
+    if (newVol < 0) newVol = 0; 
+    this.hass.callService('media_player', 'volume_set', { 
+      entity_id: entity, 
+      volume_level: newVol 
+    }); 
+  } 
+
+  private onSlider(e: any) { 
+    if (!this.config || !this.hass) return; 
+    const entity = this.config.volume_entity ?? this.config.media_entity; 
+    const newVol = parseFloat(e.target.value); 
+    this.hass.callService('media_player', 'volume_set', { 
+      entity_id: entity, 
+      volume_level: newVol 
+    }); 
+  } 
+
+  private toggleMute() { 
+    if (!this.config || !this.hass) return; 
+    const entity = this.config.volume_entity ?? this.config.media_entity; 
+    this.hass.callService('media_player', 'volume_mute', { 
+      entity_id: entity, 
+      is_volume_muted: !this._muted 
+    }); 
+  } 
+  render() { 
+    const cfg = this.config; 
+    const showTitle      = cfg.show_title      !== false; 
+    const showNavigation = cfg.show_navigation !== false; 
+    const showButtons    = cfg.show_buttons    !== false; 
+    const showApps       = cfg.show_apps       !== false; 
+    const showVolume     = cfg.show_volume     !== false; 
+    const lblNavigation  = cfg.label_navigation ?? "navigatie"; 
+    const lblVolume      = cfg.label_volume     ?? "volume"; 
+    const isOn           = this._isOn; 
+    const configuredApps = cfg?.apps || ['netflix', 'nlziet', 'spotify']; 
+
+    return html`
+      <div class="remote">
 
         <div class="top-row">
           <div class="power-btn ${isOn ? "on" : "off"}" @click=${this.togglePower} title=${isOn ? "Turn off" : "Turn on"}>
@@ -129,28 +167,28 @@ export class GoogleTVRemoteCard extends LitElement {
         ${showApps ? html`
           <div class="hr"/>
           <div class="app-row">
-            ${configuredApps.map((appKeyOrObj: string | any) => {
-              let name = '';
-              let activity = '';
-              let icon = 'mdi:apps';
+            ${configuredApps.map((appKeyOrObj: string | any) => { 
+              let name = ''; 
+              let activity = ''; 
+              let icon = 'mdi:apps'; 
 
-              if (typeof appKeyOrObj === 'string' && DEFAULT_APPS[appKeyOrObj]) {
-                name = DEFAULT_APPS[appKeyOrObj].name;
-                activity = DEFAULT_APPS[appKeyOrObj].activity;
-                icon = DEFAULT_APPS[appKeyOrObj].icon;
-              } else if (typeof appKeyOrObj === 'object') {
-                name = appKeyOrObj.name || '';
-                activity = appKeyOrObj.activity || '';
-                icon = appKeyOrObj.icon || 'mdi:apps';
-              }
+              if (typeof appKeyOrObj === 'string' && DEFAULT_APPS[appKeyOrObj]) { 
+                name = DEFAULT_APPS[appKeyOrObj].name; 
+                activity = DEFAULT_APPS[appKeyOrObj].activity; 
+                icon = DEFAULT_APPS[appKeyOrObj].icon; 
+              } else if (typeof appKeyOrObj === 'object') { 
+                name = appKeyOrObj.name || ''; 
+                activity = appKeyOrObj.activity || ''; 
+                icon = appKeyOrObj.icon || 'mdi:apps'; 
+              } 
 
-              if (!activity) return html``;
+              if (!activity) return html``; 
 
               return html`
                 <ha-icon-button .title="${name}" @click="${() => this._launchApp(activity)}">
                   <ha-icon .icon="${icon}"/>
                 </ha-icon-button>
-              `;
+              `; 
             })}
           </div>
         ` : nothing}      
@@ -173,8 +211,8 @@ export class GoogleTVRemoteCard extends LitElement {
         ` : nothing}
 
       </div>
-    `;
-  }
+    `; 
+  } 
 
   static styles = css`
     * {
@@ -254,7 +292,8 @@ export class GoogleTVRemoteCard extends LitElement {
       width: 34px;
       flex-shrink: 0;
     }
-        /* D-pad */
+
+    /* D-pad */
     .pad {
       width: 220px;
       height: 220px;
@@ -417,3 +456,5 @@ export class GoogleTVRemoteCard extends LitElement {
       cursor: pointer;
       flex-shrink: 0;
     }
+  `;
+}

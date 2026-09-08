@@ -3,64 +3,132 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { RemoteCardConfig, AppConfig } from './types';
 
 // Vooraf gedefinieerde app-lijst met URL-schema's en icons
-const DEFAULT_APPS: Record<string, { name: string; activity: string; icon: string }>={ netflix: { name:'Netflix' , activity:'netflix://' , icon:'mdi:netflix' }, nlziet: { name:'NLZIET' , activity:'nlziet://' , icon:'mdi:television-play' }, spotify: { name:'Spotify' , activity:'spotify://' , icon:'mdi:spotify' }, youtube: { name:'YouTube' , activity:'youtube.com' , icon:'mdi:youtube' }, videoland: { name:'Videoland' , activity:'videoland-v2://' , icon:'mdi:play-box' }, disneyplus: { name:'Disney+' , activity:'disneyplus.com' , icon:'mdi:television-classic' }, primevideo: { name:'Prime Video' , activity:'primevideo.com' , icon:'mdi:video' }, viaplay: { name:'Viaplay' , activity:'viaplay://' , icon:'mdi:sports-car' }, max: { name:'Max (HBO)' , activity:'max.com' , icon:'mdi:movie-roll' }, plex: { name:'Plex' , activity:'plex://' , icon:'mdi:plex' }, kodi: { name:'Kodi' , activity:'kodi://' , icon:'mdi:kodi' }, }; @customElement("google-tv-remote-card") export class GoogleTVRemoteCard extends LitElement { @property({ attribute: false }) hass: any; @property({ attribute: false }) config!: RemoteCardConfig; @state() private _volume=0.4; @state() private _muted=false; setConfig(config: RemoteCardConfig) { if (!config.remote_entity || !config.media_entity) { throw new Error("remote_entity and media_entity are required"); } this.config=config; } updated(changedProps: Map<string, unknown>) { if (changedProps.has("hass")) { const entity=this.config.volume_entity ?? this.config.media_entity; const state=this.hass?.states[entity]; if (state?.attributes?.volume_level !==undefined) { this._volume=state.attributes.volume_level; } if (state?.attributes?.is_volume_muted !==undefined) { this._muted=state.attributes.is_volume_muted; } } } private _launchApp(activity: string): void { if (!this.config || !this.hass) return; this.hass.callService('remote','turn_on' , { entity_id: this.config.remote_entity, data: { activity: activity } }); } private get _isOn(): boolean { const state=this.hass?.states[this.config.media_entity]; return state?.state !=="off" && state?.state !=="unavailable" && state?.state !==undefined; } private togglePower() { if (!this.config || !this.hass) return; this.hass.callService('remote','toggle' , { entity_id: this.config.remote_entity }); } private sendKey(key: string) { if (!this.config || !this.hass) return; this.hass.callService('remote','send_command' , { entity_id: this.config.remote_entity, command: key }); } private volStep(step: number) { if (!this.config || !this.hass) return; const entity=this.config.volume_entity ?? this.config.media_entity; let newVol=this._volume + step; if (newVol> 1) newVol = 1;
+const DEFAULT_APPS: Record<string, { name: string; activity: string; icon: string }> = { 
+  netflix: { name: 'Netflix', activity: 'netflix://', icon: 'mdi:netflix' }, 
+  nlziet: { name: 'NLZIET', activity: 'nlziet://', icon: 'mdi:television-play' }, 
+  spotify: { name: 'Spotify', activity: 'spotify://', icon: 'mdi:spotify' }, 
+  youtube: { name: 'YouTube', activity: 'youtube.com', icon: 'mdi:youtube' }, 
+  videoland: { name: 'Videoland', activity: 'videoland-v2://', icon: 'mdi:play-box' }, 
+  disneyplus: { name: 'Disney+', activity: 'disneyplus.com', icon: 'mdi:television-classic' }, 
+  primevideo: { name: 'Prime Video', activity: 'primevideo.com', icon: 'mdi:video' }, 
+  viaplay: { name: 'Viaplay', activity: 'viaplay://', icon: 'mdi:sports-car' }, 
+  max: { name: 'Max (HBO)', activity: 'max.com', icon: 'mdi:movie-roll' }, 
+  plex: { name: 'Plex', activity: 'plex://', icon: 'mdi:plex' }, 
+  kodi: { name: 'Kodi', activity: 'kodi://', icon: 'mdi:kodi' }, 
+}; 
+
+@customElement("google-tv-remote-card") 
+export class GoogleTVRemoteCard extends LitElement { 
+  @property({ attribute: false }) hass: any; 
+  @property({ attribute: false }) config!: RemoteCardConfig; 
+  @state() private _volume = 0.4; 
+  @state() private _muted = false; 
+
+  setConfig(config: RemoteCardConfig) { 
+    if (!config.remote_entity || !config.media_entity) { 
+      throw new Error("remote_entity and media_entity are required"); 
+    } 
+    this.config = config; 
+  } 
+
+  updated(changedProps: Map<string, unknown>) { 
+    if (changedProps.has("hass")) { 
+      const entity = this.config.volume_entity ?? this.config.media_entity; 
+      const state = this.hass?.states[entity]; 
+      if (state?.attributes?.volume_level !== undefined) { 
+        this._volume = state.attributes.volume_level; 
+      } 
+      if (state?.attributes?.is_volume_muted !== undefined) { 
+        this._muted = state.attributes.is_volume_muted; 
+      } 
+    } 
+  } 
+
+  private _launchApp(activity: string): void { 
+    if (!this.config || !this.hass) return; 
+    this.hass.callService('remote', 'turn_on', { 
+      entity_id: this.config.remote_entity, 
+      data: { activity: activity } 
+    }); 
+  } 
+
+  private get _isOn(): boolean { 
+    const state = this.hass?.states[this.config.media_entity]; 
+    return state?.state !== "off" && state?.state !== "unavailable" && state?.state !== undefined; 
+  } 
+
+  private togglePower() { 
+    if (!this.config || !this.hass) return; 
+    this.hass.callService('remote', 'toggle', { entity_id: this.config.remote_entity }); 
+  } 
+
+  private sendKey(key: string) { 
+    if (!this.config || !this.hass) return; 
+    this.hass.callService('remote', 'send_command', { entity_id: this.config.remote_entity, command: key }); 
+  } 
+
+  private volStep(step: number) { 
+    if (!this.config || !this.hass) return; 
+    const entity = this.config.volume_entity ?? this.config.media_entity; 
+    let newVol = this._volume + step; 
+    if (newVol > 1) newVol = 1;
     if (newVol 
 
         <div class="top-row">
-		<div class="power-btn ${isOn ? " on" :"off" }" @click=${this.togglePower} title=${isOn ?"Turn off" :"Turn on" }>
-			<ha-icon icon="mdi:power"/>
-		</div>
+          <div class="power-btn ${isOn ? "on" : "off"}" @click=${this.togglePower} title=${isOn ? "Turn off" : "Turn on"}>
+            <ha-icon icon="mdi:power"/>
+          </div>
           ${showTitle && cfg.title ? html`
             <div class="top-title">${cfg.title}</div>
           ` : html`<div class="top-title"/>`}
           <div class="top-spacer"/>
-	</div>
+        </div>
 
         ${showNavigation ? html`
           ${lblNavigation ? html`<div class="lbl">${lblNavigation}</div>` : nothing}
           <div class="pad">
-		<div class="arr u" @click=${()=> this.sendKey("DPAD_UP")}>
+            <div class="arr u" @click=${() => this.sendKey("DPAD_UP")}>
               <div class="icon-wrap">
-				<ha-icon icon="mdi:chevron-up"/>
-			</div>
-		</div>
-		<div class="arr d" @click=${()=> this.sendKey("DPAD_DOWN")}>
+                <ha-icon icon="mdi:chevron-up"/>
+              </div>
+            </div>
+            <div class="arr d" @click=${() => this.sendKey("DPAD_DOWN")}>
               <div class="icon-wrap">
-				<ha-icon icon="mdi:chevron-down"/>
-			</div>
-		</div>
-		<div class="arr l" @click=${()=> this.sendKey("DPAD_LEFT")}>
+                <ha-icon icon="mdi:chevron-down"/>
+              </div>
+            </div>
+            <div class="arr l" @click=${() => this.sendKey("DPAD_LEFT")}>
               <div class="icon-wrap">
-				<ha-icon icon="mdi:chevron-left"/>
-			</div>
-		</div>
-		<div class="arr r" @click=${()=> this.sendKey("DPAD_RIGHT")}>
+                <ha-icon icon="mdi:chevron-left"/>
+              </div>
+            </div>
+            <div class="arr r" @click=${() => this.sendKey("DPAD_RIGHT")}>
               <div class="icon-wrap">
-				<ha-icon icon="mdi:chevron-right"/>
-			</div>
-		</div>
-		<div class="ok" @click=${()=> this.sendKey("DPAD_CENTER")}>ok</div>
-	</div>
+                <ha-icon icon="mdi:chevron-right"/>
+              </div>
+            </div>
+            <div class="ok" @click=${() => this.sendKey("DPAD_CENTER")}>ok</div>
+          </div>
         ` : nothing}
 
         ${showButtons ? html`
           <div class="hr"/>
-	<div class="btn-row">
-		<div class="btn" @click=${()=> this.sendKey("BACK")}>
+          <div class="btn-row">
+            <div class="btn" @click=${() => this.sendKey("BACK")}>
               <ha-icon icon="mdi:arrow-u-left-top"/>
-			<span>terug</span>
-		</div>
-		<div class="btn" @click=${()=> this.sendKey("HOME")}>
+              <span>terug</span>
+            </div>
+            <div class="btn" @click=${() => this.sendKey("HOME")}>
               <ha-icon icon="mdi:home"/>
-			<span>home</span>
-		</div>
-	</div>
+              <span>home</span>
+            </div>
+          </div>
         ` : nothing}
 
         <!-- APPS BALK -->
         ${showApps ? html`
           <div class="hr"/>
-	<div class="app-row">
+          <div class="app-row">
             ${configuredApps.map((appKeyOrObj: string | any) => {
               let name = '';
               let activity = '';
@@ -80,8 +148,8 @@ const DEFAULT_APPS: Record<string, { name: string; activity: string; icon: strin
 
               return html`
                 <ha-icon-button .title="${name}" @click="${() => this._launchApp(activity)}">
-			<ha-icon .icon="${icon}"/>
-		</ha-icon-button>
+                  <ha-icon .icon="${icon}"/>
+                </ha-icon-button>
               `;
             })}
           </div>
@@ -91,17 +159,17 @@ const DEFAULT_APPS: Record<string, { name: string; activity: string; icon: strin
           <div class="hr"/>
           ${lblVolume ? html`<div class="lbl">${lblVolume}</div>` : nothing}
           <div class="vol-wrap">
-		<div class="vol-btn" @click=${()=> this.volStep(-0.02)}>
+            <div class="vol-btn" @click=${() => this.volStep(-0.02)}>
               <ha-icon icon="mdi:minus"/>
-		</div>
-		<input type="range" min="0" max="1" step="0.02" .value=${String(this._volume)} @input=${this.onSlider}/>
-		<div class="vol-btn" @click=${()=> this.volStep(0.02)}>
+            </div>
+            <input type="range" min="0" max="1" step="0.02" .value=${String(this._volume)} @input=${this.onSlider}/>
+            <div class="vol-btn" @click=${() => this.volStep(0.02)}>
               <ha-icon icon="mdi:plus"/>
-		</div>
-		<div class="vol-btn ${this._muted ? " muted" :"" }" @click=${this.toggleMute}>
-			<ha-icon icon=${this._muted ?"mdi:volume-off" :"mdi:volume-high" }>< ha-icon>
-		</div>
-	</div>
+            </div>
+            <div class="vol-btn ${this._muted ? "muted" : ""}" @click=${this.toggleMute}>
+              <ha-icon icon=${this._muted ? "mdi:volume-off" : "mdi:volume-high"}/>
+            </div>
+          </div>
         ` : nothing}
 
       </div>

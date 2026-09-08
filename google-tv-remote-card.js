@@ -110,12 +110,17 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             }
         }
     }
+    // GECORRIGEERD: Volledig omgebouwd naar de officiële Home Assistant Action-structuur
     _launchApp(activity) {
         if (!this.config || !this.hass)
             return;
-        this.hass.callService('remote', 'turn_on', {
-            entity_id: this.config.remote_entity,
-            data: { activity: activity }
+        this.hass.callAction('remote', 'turn_on', {
+            target: {
+                entity_id: this.config.remote_entity
+            },
+            data: {
+                activity: activity
+            }
         });
     }
     get _isOn() {
@@ -125,12 +130,17 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
     togglePower() {
         if (!this.config || !this.hass)
             return;
-        this.hass.callService('remote', 'toggle', { entity_id: this.config.remote_entity });
+        this.hass.callAction('remote', 'toggle', {
+            target: { entity_id: this.config.remote_entity }
+        });
     }
     sendKey(key) {
         if (!this.config || !this.hass)
             return;
-        this.hass.callService('remote', 'send_command', { entity_id: this.config.remote_entity, command: key });
+        this.hass.callAction('remote', 'send_command', {
+            target: { entity_id: this.config.remote_entity },
+            data: { command: key }
+        });
     }
     volStep(step) {
         if (!this.config || !this.hass)
@@ -141,9 +151,9 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             newVol = 1;
         if (newVol < 0)
             newVol = 0;
-        this.hass.callService('media_player', 'volume_set', {
-            entity_id: entity,
-            volume_level: newVol
+        this.hass.callAction('media_player', 'volume_set', {
+            target: { entity_id: entity },
+            data: { volume_level: newVol }
         });
     }
     onSlider(e) {
@@ -151,18 +161,18 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             return;
         const entity = this.config.volume_entity ?? this.config.media_entity;
         const newVol = parseFloat(e.target.value);
-        this.hass.callService('media_player', 'volume_set', {
-            entity_id: entity,
-            volume_level: newVol
+        this.hass.callAction('media_player', 'volume_set', {
+            target: { entity_id: entity },
+            data: { volume_level: newVol }
         });
     }
     toggleMute() {
         if (!this.config || !this.hass)
             return;
         const entity = this.config.volume_entity ?? this.config.media_entity;
-        this.hass.callService('media_player', 'volume_mute', {
-            entity_id: entity,
-            is_volume_muted: !this._muted
+        this.hass.callAction('media_player', 'volume_mute', {
+            target: { entity_id: entity },
+            data: { is_volume_muted: !this._muted }
         });
     }
     render() {

@@ -110,7 +110,6 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             }
         }
     }
-    // GECORRIGEERD: Haalt 'target' weg en stuurt 'entity_id' en 'activity' direct mee
     _launchApp(activity) {
         if (!this.config || !this.hass)
             return;
@@ -122,6 +121,12 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
     get _isOn() {
         const state = this.hass?.states[this.config.media_entity];
         return state?.state !== "off" && state?.state !== "unavailable" && state?.state !== undefined;
+    }
+    // NIEUW: Haalt de momenteel actieve app/activity string op uit de TV entiteit attributes
+    get _currentActivity() {
+        const remoteState = this.hass?.states[this.config.remote_entity];
+        const mediaState = this.hass?.states[this.config.media_entity];
+        return remoteState?.attributes?.activity || mediaState?.attributes?.activity || "";
     }
     togglePower() {
         if (!this.config || !this.hass)
@@ -181,12 +186,13 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
         const lblNavigation = cfg.label_navigation ?? "navigatie";
         const lblVolume = cfg.label_volume ?? "volume";
         const isOn = this._isOn;
+        const currentAct = this._currentActivity;
         const configuredApps = cfg?.apps || ['netflix', 'nlziet', 'spotify'];
         return b `
       <div class="remote">
 
         <div class="top-row">
-          <div class="power-btn ${isOn ? "on" : "off"}" @click=${this.togglePower} title=${isOn ? "Turn off" : "Turn on"}>
+          <div class="power-btn ${isOn ? "on active" : "off"}" @click=${this.togglePower} title=${isOn ? "Turn off" : "Turn on"}>
             <ha-icon icon="mdi:power"></ha-icon>
           </div>
           ${showTitle && cfg.title ? b `
@@ -257,8 +263,14 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             }
             if (!activity)
                 return b ``;
+            // Controleer of deze specifieke app momenteel openstaat op de tv
+            const isActive = currentAct === activity;
             return b `
-                <ha-icon-button .title="${name}" @click="${() => this._launchApp(activity)}">
+                <ha-icon-button 
+                  class="${isActive ? 'active' : ''}" 
+                  .title="${name}" 
+                  @click="${() => this._launchApp(activity)}"
+                >
                   <ha-icon icon="${icon}"></ha-icon>
                 </ha-icon-button>
               `;
@@ -337,7 +349,7 @@ GoogleTVRemoteCard.styles = i$3 `
       border: 1px solid #ddd;
       cursor: pointer;
       flex-shrink: 0;
-      transition: background 0.1s, transform 0.1s;
+      transition: background 0.1s, transform 0.1s, color 0.1s;
       -webkit-tap-highlight-color: transparent;
       --mdc-icon-size: 20px;
       color: #aaa;
@@ -346,14 +358,14 @@ GoogleTVRemoteCard.styles = i$3 `
       transform: scale(0.92);
       background: #f0f0f0;
     }
-    .power-btn.on {
-      border-color: #4CAF5066;
-      color: #4CAF50;
+    
+    /* ACTIEF: Wanneer de TV aan staat kleurt de knop groen */
+    .power-btn.active {
+      border-color: var(--state-remote-on-color, #4CAF50);
+      background-color: var(--state-remote-on-color, #4CAF50);
+      color: #fff;
     }
-    .power-btn.off {
-      border-color: #ddd;
-      color: #aaa;
-    }
+    
     .top-title {
       flex: 1;
       text-align: center;
@@ -485,11 +497,18 @@ GoogleTVRemoteCard.styles = i$3 `
       border-radius: 50%;
       --mdc-icon-button-size: 48px;
       --mdc-icon-size: 26px;
-      transition: transform 0.1s, background 0.1s;
+      transition: transform 0.1s, background-color 0.1s, color 0.1s;
     }
     .app-row ha-icon-button:active {
       transform: scale(0.92);
       background-color: #f0f0f0;
+    }
+
+    /* ACTIEF: Wanneer een specifieke app openstaat kleurt de achtergrond mee met de accentkleur */
+    .app-row ha-icon-button.active {
+      background-color: var(--accent-color, #378ADD);
+      border-color: var(--accent-color, #378ADD);
+      color: #fff;
     }
 
     /* Volume */

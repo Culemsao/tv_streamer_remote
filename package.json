@@ -1,6 +1,6 @@
 {
   "name": "google-tv-remote-card",
-  "version": "0.1.29",
+  "version": "0.1.30",
   "type": "module",
   "description": "Custom Google TV remote Lovelace card",
   "scripts": {

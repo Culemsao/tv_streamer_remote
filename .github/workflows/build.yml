@@ -24,13 +24,19 @@ jobs:
         with:
           node-version: '22'
 
-      - run: npm ci
+      # Gecorrigeerd: npm install in plaats van npm ci om de lockfile-fout op te lossen
+      - run: npm install
+      
       - run: npm run build
 
-      - name: Commit dist
+      # Gecorrigeerd: Voegt de gecompileerde .js-file toe in plaats van een niet-bestaande dist/ map
+      - name: Commit build
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dist/
-          git diff --staged --quiet || git commit -m "build: update dist"
+          
+          # Wijzig dit naar 'dist/' als jouw rollup.config.js het tóch in een dist-map zet
+          git add google-tv-remote-card.js
+          
+          git diff --staged --quiet || git commit -m "build: update gecompileerde javascript"
           git push

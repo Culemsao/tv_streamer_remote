@@ -110,17 +110,13 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             }
         }
     }
-    // GECORRIGEERD: Vertaalt callService nu exact naar de gevraagde YAML-structuur met target en data
+    // GECORRIGEERD: Haalt 'target' weg en stuurt 'entity_id' en 'activity' direct mee
     _launchApp(activity) {
         if (!this.config || !this.hass)
             return;
         this.hass.callService('remote', 'turn_on', {
-            target: {
-                entity_id: this.config.remote_entity
-            },
-            data: {
-                activity: activity
-            }
+            entity_id: this.config.remote_entity,
+            activity: activity
         });
     }
     get _isOn() {

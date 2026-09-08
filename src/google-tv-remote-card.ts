@@ -414,7 +414,8 @@ export class GoogleTVRemoteCard extends LitElement {
       background-color: #fff;
       border: 1px solid #ddd;
       border-radius: 50%;
-      --mdc-icon-button-size: 44px;
+      --mdc-icon-button-size: 48px; /* Iets grotere knopcontainer voor de balans */
+      --mdc-icon-size: 26px;        /* VERGROOT: De interne iconen zijn nu 26px ipv standaard ~20px */
       transition: transform 0.1s, background 0.1s;
     }
     .app-row ha-icon-button:active {
@@ -461,4 +462,3 @@ export class GoogleTVRemoteCard extends LitElement {
       flex-shrink: 0;
     }
   `;
-}

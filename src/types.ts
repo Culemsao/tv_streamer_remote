@@ -1,10 +1,11 @@
-export interface AppDef {
+export interface AppConfig {
   name: string;
-  scheme: string;
-  match: string[];
+  icon?: string;
+  id: string; // Bijv. 'netflix', 'nlziet'
+  activity: string; // Bijv. 'netflix://'
 }
 
-export interface GoogleTVRemoteConfig {
+export interface RemoteCardConfig {
   remote_entity: string;
   media_entity: string;
   volume_entity?: string;
@@ -16,5 +17,5 @@ export interface GoogleTVRemoteConfig {
   show_volume?: boolean;
   label_navigation?: string;
   label_volume?: string;
-  apps?: string[];
+  apps?: (string | AppConfig)[]; // Staat de app-lijst toe in Lovelace
 }

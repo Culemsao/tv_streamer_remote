@@ -7,7 +7,10 @@ A custom Lovelace card for Home Assistant to control Google TV / Android TV devi
 - D-pad navigation with large tap targets
 - Back and Home buttons (labels can be hidden)
 - **App Launcher Bar**: Quick launch buttons for streaming apps (Netflix, NLZIET, Spotify, etc.)
-- **Dynamic State Colors**: Power button lights up when the TV is on; app buttons light up when that specific app is active
+- **Dynamic State Colors**: 
+  - Power button lights up when the TV is on.
+  - Home button lights up when the TV is on the Google TV home screen.
+  - App buttons light up when that specific app is active on the screen.
 - Volume slider with +/− step buttons and mute toggle
 - Separate volume entity support (e.g. Sonos)
 - Fully configurable: show/hide sections, toggle labels, custom icons, optional title

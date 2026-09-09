@@ -184,7 +184,7 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
         const showLabelNavigation = cfg.show_label_navigation !== false;
         const showLabelVolume = cfg.show_label_volume !== false;
         const showButtonLabels = cfg.show_button_labels !== false;
-        const lblNavigation = cfg.label_navigation ?? "navigatie";
+        const lblNavigation = cfg.label_navigation ?? "navigation";
         const lblVolume = cfg.label_volume ?? "volume";
         const isOn = this._isOn;
         const currentAct = this._currentActivity.toLowerCase();
@@ -237,7 +237,7 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
           <div class="btn-row">
             <div class="btn ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("BACK")}>
               <ha-icon icon="mdi:arrow-u-left-top"></ha-icon>
-              ${showButtonLabels ? b `<span>terug</span>` : A}
+              ${showButtonLabels ? b `<span>back</span>` : A}
             </div>
             <div class="btn ${isHomeActive ? 'active' : ''} ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("HOME")}>
               <ha-icon icon="mdi:home"></ha-icon>

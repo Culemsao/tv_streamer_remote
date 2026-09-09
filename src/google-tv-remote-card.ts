@@ -126,6 +126,9 @@ export class GoogleTVRemoteCard extends LitElement {
     const currentAct     = this._currentActivity.toLowerCase(); 
     const configuredApps = cfg?.apps || ['netflix', 'nlziet', 'spotify']; 
 
+    // NIEUW: Controleer of de TV op het Google TV startscherm staat (alleen als de TV aan staat)
+    const isHomeActive = isOn && currentAct.includes("com.google.android.apps.tv.launcherx");
+
     return html`
       <div class="remote">
 
@@ -173,14 +176,16 @@ export class GoogleTVRemoteCard extends LitElement {
               <ha-icon icon="mdi:arrow-u-left-top"></ha-icon>
               ${showButtonLabels ? html`<span>terug</span>` : nothing}
             </div>
-            <div class="btn ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("HOME")}>
+            
+            <!-- GECORRIGEERD: Voegt dynamisch de 'active' klasse toe als het startscherm open staat -->
+            <div class="btn ${isHomeActive ? 'active' : ''} ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("HOME")}>
               <ha-icon icon="mdi:home"></ha-icon>
               ${showButtonLabels ? html`<span>home</span>` : nothing}
             </div>
           </div>
         ` : nothing}
 
-        <!-- APPS BALK (Volledig optioneel via show_apps) -->
+        <!-- APPS BALK -->
         ${showApps ? html`
           <div class="hr"></div>
           <div class="app-row">
@@ -227,7 +232,6 @@ export class GoogleTVRemoteCard extends LitElement {
           </div>
         ` : nothing}      
 
-        <!-- VOLUME SECTIE (Volledig optioneel via show_volume) -->
         ${showVolume ? html`
           <div class="hr"></div>
           ${showLabelVolume && lblVolume ? html`<div class="lbl">${lblVolume}</div>` : nothing}
@@ -248,6 +252,7 @@ export class GoogleTVRemoteCard extends LitElement {
       </div>
     `; 
   } 
+
 
   static styles = css`
     * {
@@ -415,7 +420,7 @@ export class GoogleTVRemoteCard extends LitElement {
       cursor: pointer;
       font-size: 11px;
       color: #666;
-      transition: transform 0.1s, background 0.1s;
+      transition: transform 0.1s, background-color 0.1s, color 0.1s, border-color 0.1s;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
@@ -427,9 +432,21 @@ export class GoogleTVRemoteCard extends LitElement {
       height: 48px;
       border-radius: 12px;
     }
+    
+    /* ACTIEF: Kleurt de home knop blauw als de TV op de launcher staat */
+    .btn.active {
+      background-color: #2980b9;
+      border-color: #2980b9;
+      color: #fff;
+    }
+    .btn.active ha-icon {
+      color: #fff;
+    }
+    
     .btn ha-icon {
       --mdc-icon-size: 26px;
       color: #666;
+      transition: color 0.1s;
     }
 
     /* App row styling */
@@ -500,3 +517,4 @@ export class GoogleTVRemoteCard extends LitElement {
       flex-shrink: 0;
     }
   `;
+

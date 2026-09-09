@@ -267,11 +267,11 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
             }
             if (!activity && !packageId)
                 return b ``;
-            // GECORRIGEERD: Matcht nu exact op de packageId string die HA uitspuugt via current_activity
-            const isActive = (packageId && currentAct.includes(packageId.toLowerCase())) ||
+            // GECORRIGEERD: De app kan ALLEEN actief zijn als de TV ook daadwerkelijk aanstaat (isOn === true)
+            const isActive = isOn && ((packageId && currentAct.includes(packageId.toLowerCase())) ||
                 (activity && currentAct.includes(activity.toLowerCase())) ||
                 (typeof appKeyOrObj === 'string' && currentAct.includes(appKeyOrObj.toLowerCase())) ||
-                (typeof appKeyOrObj === 'object' && appKeyOrObj.id && currentAct.includes(appKeyOrObj.id.toLowerCase()));
+                (typeof appKeyOrObj === 'object' && appKeyOrObj.id && currentAct.includes(appKeyOrObj.id.toLowerCase())));
             return b `
                 <ha-icon-button 
                   class="${isActive ? 'active' : ''}" 

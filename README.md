@@ -1,10 +1,12 @@
 # Google TV Remote Card
 
 A custom Lovelace card for Home Assistant to control Google TV / Android TV devices.
+<div style="display: flex; justify-content: space-between; width: 100%;">
+  <img src="https://github.com/user-attachments/assets/4d656652-ae66-42ea-9222-db7d28f483dc" style="width: 32%; height: auto; object-fit: cover;">
+  <img src="https://github.com/user-attachments/assets/7340bc05-8ba3-47d5-b15c-816f783cb99a" style="width: 32%; height: auto; object-fit: cover;">
+  <img src="https://github.com/user-attachments/assets/5484a6f8-4f53-48d4-b481-36de0be0c543" style="width: 32%; height: auto; object-fit: cover;">
+</div>
 
-<img width="289" height="538" alt="image" src="https://github.com/user-attachments/assets/4d656652-ae66-42ea-9222-db7d28f483dc" />
-<img width="291" height="619" alt="image" src="https://github.com/user-attachments/assets/7340bc05-8ba3-47d5-b15c-816f783cb99a" />
-<img width="288" height="697" alt="image" src="https://github.com/user-attachments/assets/5484a6f8-4f53-48d4-b481-36de0be0c543" />
 
 ## Features
 

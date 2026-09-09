@@ -53,13 +53,11 @@ export class GoogleTVRemoteCard extends LitElement {
     }); 
   } 
 
-  // GECORRIGEERD: Luistert nu puur en alleen naar de state van remote_entity
   private get _isOn(): boolean { 
     const remoteState = this.hass?.states[this.config.remote_entity]?.state;
     return remoteState === "on";
   } 
 
-  // GECORRIGEERD: Haalt de current_activity op uit de remote_entity
   private get _currentActivity(): string {
     const remoteState = this.hass?.states[this.config.remote_entity];
     return remoteState?.attributes?.current_activity || "";
@@ -109,15 +107,19 @@ export class GoogleTVRemoteCard extends LitElement {
       entity_id: entity, 
       is_volume_muted: !this._muted 
     }); 
-  }
-  
+  } 
+
   render() { 
     const cfg = this.config; 
-    const showTitle      = cfg.show_title      !== false; 
-    const showNavigation = cfg.show_navigation !== false; 
-    const showButtons    = cfg.show_buttons    !== false; 
-    const showApps       = cfg.show_apps       !== false; 
-    const showVolume     = cfg.show_volume     !== false; 
+    const showTitle            = cfg.show_title            !== false; 
+    const showNavigation       = cfg.show_navigation       !== false; 
+    const showButtons          = cfg.show_buttons          !== false; 
+    const showApps             = cfg.show_apps             !== false; 
+    const showVolume           = cfg.show_volume           !== false; 
+    const showLabelNavigation  = cfg.show_label_navigation  !== false;
+    const showLabelVolume      = cfg.show_label_volume      !== false;
+    const showButtonLabels     = cfg.show_button_labels     !== false;
+
     const lblNavigation  = cfg.label_navigation ?? "navigatie"; 
     const lblVolume      = cfg.label_volume     ?? "volume"; 
     const isOn           = this._isOn; 
@@ -138,7 +140,7 @@ export class GoogleTVRemoteCard extends LitElement {
         </div>
 
         ${showNavigation ? html`
-          ${lblNavigation ? html`<div class="lbl">${lblNavigation}</div>` : nothing}
+          ${showLabelNavigation && lblNavigation ? html`<div class="lbl">${lblNavigation}</div>` : nothing}
           <div class="pad">
             <div class="arr u" @click=${() => this.sendKey("DPAD_UP")}>
               <div class="icon-wrap">
@@ -167,18 +169,18 @@ export class GoogleTVRemoteCard extends LitElement {
         ${showButtons ? html`
           <div class="hr"></div>
           <div class="btn-row">
-            <div class="btn" @click=${() => this.sendKey("BACK")}>
+            <div class="btn ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("BACK")}>
               <ha-icon icon="mdi:arrow-u-left-top"></ha-icon>
-              <span>terug</span>
+              ${showButtonLabels ? html`<span>terug</span>` : nothing}
             </div>
-            <div class="btn" @click=${() => this.sendKey("HOME")}>
+            <div class="btn ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("HOME")}>
               <ha-icon icon="mdi:home"></ha-icon>
-              <span>home</span>
+              ${showButtonLabels ? html`<span>home</span>` : nothing}
             </div>
           </div>
         ` : nothing}
 
-        <!-- APPS BALK -->
+        <!-- APPS BALK (Volledig optioneel via show_apps) -->
         ${showApps ? html`
           <div class="hr"></div>
           <div class="app-row">
@@ -205,7 +207,6 @@ export class GoogleTVRemoteCard extends LitElement {
 
               if (!activity && !packageId) return html``; 
 
-              // GECORRIGEERD: De app kan ALLEEN actief zijn als de TV ook daadwerkelijk aanstaat (isOn === true)
               const isActive = isOn && (
                                (packageId && currentAct.includes(packageId.toLowerCase())) ||
                                (activity && currentAct.includes(activity.toLowerCase())) ||
@@ -226,9 +227,10 @@ export class GoogleTVRemoteCard extends LitElement {
           </div>
         ` : nothing}      
 
+        <!-- VOLUME SECTIE (Volledig optioneel via show_volume) -->
         ${showVolume ? html`
           <div class="hr"></div>
-          ${lblVolume ? html`<div class="lbl">${lblVolume}</div>` : nothing}
+          ${showLabelVolume && lblVolume ? html`<div class="lbl">${lblVolume}</div>` : nothing}
           <div class="vol-wrap">
             <div class="vol-btn" @click=${() => this.volStep(-0.02)}>
               <ha-icon icon="mdi:minus"></ha-icon>
@@ -306,8 +308,6 @@ export class GoogleTVRemoteCard extends LitElement {
       transform: scale(0.92);
       background: #f0f0f0;
     }
-    
-    /* ACTIEF: Kleurt groen als remote state 'on' is */
     .power-btn.active {
       border-color: #2ecc71;
       background-color: #2ecc71;
@@ -423,6 +423,10 @@ export class GoogleTVRemoteCard extends LitElement {
       transform: scale(0.92);
       background: #f0f0f0;
     }
+    .btn.no-label {
+      height: 48px;
+      border-radius: 12px;
+    }
     .btn ha-icon {
       --mdc-icon-size: 26px;
       color: #666;
@@ -451,8 +455,6 @@ export class GoogleTVRemoteCard extends LitElement {
       transform: scale(0.92);
       background-color: #f0f0f0;
     }
-
-    /* ACTIEF: Kleurt blauw als packageId matcht met current_activity */
     .app-row ha-icon-button.active {
       background-color: #2980b9;
       border-color: #2980b9;
@@ -498,4 +500,3 @@ export class GoogleTVRemoteCard extends LitElement {
       flex-shrink: 0;
     }
   `;
-}

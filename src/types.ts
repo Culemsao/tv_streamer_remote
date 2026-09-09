@@ -1,8 +1,8 @@
 export interface AppConfig {
   name: string;
   icon?: string;
-  id: string; // Bijv. 'netflix', 'nlziet'
-  activity: string; // Bijv. 'netflix://'
+  id: string;
+  activity: string;
 }
 
 export interface RemoteCardConfig {
@@ -15,7 +15,10 @@ export interface RemoteCardConfig {
   show_buttons?: boolean;
   show_apps?: boolean;
   show_volume?: boolean;
+  show_label_navigation?: boolean; // NIEUW
+  show_label_volume?: boolean;     // NIEUW
+  show_button_labels?: boolean;    // NIEUW
   label_navigation?: string;
   label_volume?: string;
-  apps?: (string | AppConfig)[]; // Staat de app-lijst toe in Lovelace
+  apps?: (string | AppConfig)[];
 }

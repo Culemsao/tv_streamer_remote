@@ -120,7 +120,7 @@ export class GoogleTVRemoteCard extends LitElement {
     const showLabelVolume      = cfg.show_label_volume      !== false;
     const showButtonLabels     = cfg.show_button_labels     !== false;
 
-    const lblNavigation  = cfg.label_navigation ?? "navigatie"; 
+    const lblNavigation  = cfg.label_navigation ?? "navigation"; 
     const lblVolume      = cfg.label_volume     ?? "volume"; 
     const isOn           = this._isOn; 
     const currentAct     = this._currentActivity.toLowerCase(); 
@@ -176,7 +176,7 @@ export class GoogleTVRemoteCard extends LitElement {
           <div class="btn-row">
             <div class="btn ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("BACK")}>
               <ha-icon icon="mdi:arrow-u-left-top"></ha-icon>
-              ${showButtonLabels ? html`<span>terug</span>` : nothing}
+              ${showButtonLabels ? html`<span>back</span>` : nothing}
             </div>
             <div class="btn ${isHomeActive ? 'active' : ''} ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("HOME")}>
               <ha-icon icon="mdi:home"></ha-icon>

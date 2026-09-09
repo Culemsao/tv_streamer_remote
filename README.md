@@ -6,7 +6,7 @@ A custom Lovelace card for Home Assistant to control Google TV / Android TV devi
 
 - D-pad navigation with large tap targets
 - Back and Home buttons (labels can be hidden)
-- **App Launcher Bar**: Quick launch buttons for streaming apps (Netflix, NLZIET, Spotify, etc.)
+- **App Launcher Bar**: Optional quick launch buttons for streaming apps (Netflix, NLZIET, Spotify, etc.)
 - **Dynamic State Colors**: 
   - Power button lights up when the TV is on.
   - Home button lights up when the TV is on the Google TV home screen.
@@ -49,7 +49,7 @@ show_title: true                          # default: true — set false to hide 
 # Sections — all default to true
 show_navigation: true                     # D-pad + ok button
 show_buttons: true                        # Back and Home buttons
-show_apps: true                           # Quick launch app bar
+show_apps: true                           # Quick launch app bar (only renders if apps are listed)
 show_volume: true                         # Volume slider, +/−, mute
 
 # Label Visibility — all default to true
@@ -62,7 +62,7 @@ label_navigation: "navigatie"             # default: "navigatie"
 label_volume: "volume"                    # default: "volume"
 
 # App Launcher Configuration (Optional)
-# If not specified, defaults to: netflix, nlziet, spotify
+# If not specified, the app bar section will remain hidden.
 apps:
   - netflix                               # uses built-in defaults (icon, schema, package ID)
   - id: nlziet
@@ -75,7 +75,7 @@ apps:
 
 ## Built-in App IDs
 
-The card has built-in support for the following app IDs out of the box:
+You can use these shortcut IDs under your `apps:` configuration to automatically load defaults:
 - `netflix`
 - `nlziet`
 - `spotify`
@@ -88,7 +88,7 @@ The card has built-in support for the following app IDs out of the box:
 - `plex`
 - `kodi`
 
-## Minimal example
+## Minimal example (No app bar)
 
 ```yaml
 type: custom:google-tv-remote-card
@@ -96,18 +96,18 @@ remote_entity: remote.tv_streamer
 media_entity: media_player.tv_streamer
 ```
 
-## Super Minimal / Navigation & Apps only (e.g. for mobile)
+## Full example with custom Apps and clean design
 
 ```yaml
 type: custom:google-tv-remote-card
 remote_entity: remote.tv_streamer
 media_entity: media_player.tv_streamer
 show_title: false
-show_volume: false
 show_label_navigation: false
 show_button_labels: false
 apps:
   - netflix
-  - nlziet
+  - id: nlziet
+    icon: "phu:nlziet"
   - spotify
 ```

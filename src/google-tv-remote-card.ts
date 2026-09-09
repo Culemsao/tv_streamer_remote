@@ -2,19 +2,19 @@ import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { RemoteCardConfig, AppConfig } from './types';
 
-// Vooraf gedefinieerde app-lijst met URL-schema's en icons
-const DEFAULT_APPS: Record<string, { name: string; activity: string; icon: string }> = { 
-  netflix: { name: 'Netflix', activity: 'netflix://', icon: 'mdi:netflix' }, 
-  nlziet: { name: 'NLZIET', activity: 'nlziet://', icon: 'mdi:television-play' }, 
-  spotify: { name: 'Spotify', activity: 'spotify://', icon: 'mdi:spotify' }, 
-  youtube: { name: 'YouTube', activity: 'youtube.com', icon: 'mdi:youtube' }, 
-  videoland: { name: 'Videoland', activity: 'videoland-v2://', icon: 'mdi:play-box' }, 
-  disneyplus: { name: 'Disney+', activity: 'disneyplus.com', icon: 'mdi:television-classic' }, 
-  primevideo: { name: 'Prime Video', activity: 'primevideo.com', icon: 'mdi:video' }, 
-  viaplay: { name: 'Viaplay', activity: 'viaplay://', icon: 'mdi:sports-car' }, 
-  max: { name: 'Max (HBO)', activity: 'max.com', icon: 'mdi:movie-roll' }, 
-  plex: { name: 'Plex', activity: 'plex://', icon: 'mdi:plex' }, 
-  kodi: { name: 'Kodi', activity: 'kodi://', icon: 'mdi:kodi' }, 
+// Vooraf gedefinieerde app-lijst met URL-schema's, icons én officiële Android Package IDs
+const DEFAULT_APPS: Record<string, { name: string; activity: string; icon: string; packageId: string }> = { 
+  netflix: { name: 'Netflix', activity: 'netflix://', icon: 'mdi:netflix', packageId: 'com.netflix.ninja' }, 
+  nlziet: { name: 'NLZIET', activity: 'nlziet://', icon: 'mdi:television-play', packageId: 'nl.streamone.nlziet' }, 
+  spotify: { name: 'Spotify', activity: 'spotify://', icon: 'mdi:spotify', packageId: 'com.spotify.tv.android' }, 
+  youtube: { name: 'YouTube', activity: 'youtube.com', icon: 'mdi:youtube', packageId: 'com.google.android.youtube.tv' }, 
+  videoland: { name: 'Videoland', activity: 'videoland-v2://', icon: 'mdi:play-box', packageId: 'nl.rtl.videoland.androidtv' }, 
+  disneyplus: { name: 'Disney+', activity: 'disneyplus.com', icon: 'mdi:television-classic', packageId: 'com.disney.disneyplus' }, 
+  primevideo: { name: 'Prime Video', activity: 'primevideo.com', icon: 'mdi:video', packageId: 'com.amazon.amazonvideo.livingroom' }, 
+  viaplay: { name: 'Viaplay', activity: 'viaplay://', icon: 'mdi:sports-car', packageId: 'com.viaplay.android' }, 
+  max: { name: 'Max (HBO)', activity: 'max.com', icon: 'mdi:movie-roll', packageId: 'com.wbd.stream' }, 
+  plex: { name: 'Plex', activity: 'plex://', icon: 'mdi:plex', packageId: 'com.plexapp.android' }, 
+  kodi: { name: 'Kodi', activity: 'kodi://', icon: 'mdi:kodi', packageId: 'org.xbmc.kodi' }, 
 }; 
 
 @customElement("google-tv-remote-card") 
@@ -53,16 +53,16 @@ export class GoogleTVRemoteCard extends LitElement {
     }); 
   } 
 
+  // GECORRIGEERD: Luistert nu puur en alleen naar de state van remote_entity
   private get _isOn(): boolean { 
-    const state = this.hass?.states[this.config.media_entity]; 
-    return state?.state !== "off" && state?.state !== "unavailable" && state?.state !== undefined; 
+    const remoteState = this.hass?.states[this.config.remote_entity]?.state;
+    return remoteState === "on";
   } 
 
-  // NIEUW: Haalt de momenteel actieve app/activity string op uit de TV entiteit attributes
+  // GECORRIGEERD: Haalt de current_activity op uit de remote_entity
   private get _currentActivity(): string {
     const remoteState = this.hass?.states[this.config.remote_entity];
-    const mediaState = this.hass?.states[this.config.media_entity];
-    return remoteState?.attributes?.activity || mediaState?.attributes?.activity || "";
+    return remoteState?.attributes?.current_activity || "";
   }
 
   private togglePower() { 
@@ -120,14 +120,14 @@ export class GoogleTVRemoteCard extends LitElement {
     const lblNavigation  = cfg.label_navigation ?? "navigatie"; 
     const lblVolume      = cfg.label_volume     ?? "volume"; 
     const isOn           = this._isOn; 
-    const currentAct     = this._currentActivity;
+    const currentAct     = this._currentActivity.toLowerCase(); 
     const configuredApps = cfg?.apps || ['netflix', 'nlziet', 'spotify']; 
 
     return html`
       <div class="remote">
 
         <div class="top-row">
-          <div class="power-btn ${isOn ? "on active" : "off"}" @click=${this.togglePower} title=${isOn ? "Turn off" : "Turn on"}>
+          <div class="power-btn ${isOn ? "active" : ""}" @click=${this.togglePower} title=${isOn ? "Turn off" : "Turn on"}>
             <ha-icon icon="mdi:power"></ha-icon>
           </div>
           ${showTitle && cfg.title ? html`
@@ -185,23 +185,30 @@ export class GoogleTVRemoteCard extends LitElement {
               let name = ''; 
               let activity = ''; 
               let icon = 'mdi:apps'; 
+              let packageId = '';
 
               if (typeof appKeyOrObj === 'string' && DEFAULT_APPS[appKeyOrObj]) { 
                 name = DEFAULT_APPS[appKeyOrObj].name; 
                 activity = DEFAULT_APPS[appKeyOrObj].activity; 
                 icon = DEFAULT_APPS[appKeyOrObj].icon; 
+                packageId = DEFAULT_APPS[appKeyOrObj].packageId;
               } else if (typeof appKeyOrObj === 'object') { 
-                const defaultApp = appKeyOrObj.id && DEFAULT_APPS[appKeyOrObj.id] ? DEFAULT_APPS[appKeyOrObj.id] : null;
+                const appId = appKeyOrObj.id || '';
+                const defaultApp = appId && DEFAULT_APPS[appId] ? DEFAULT_APPS[appId] : null;
                 
-                name = appKeyOrObj.name || defaultApp?.name || ''; 
+                name = appKeyOrObj.name || defaultApp?.name || appId || ''; 
                 activity = appKeyOrObj.activity || defaultApp?.activity || ''; 
                 icon = appKeyOrObj.icon || defaultApp?.icon || 'mdi:apps'; 
+                packageId = appKeyOrObj.packageId || defaultApp?.packageId || '';
               } 
 
-              if (!activity) return html``; 
+              if (!activity && !packageId) return html``; 
 
-              // Controleer of deze specifieke app momenteel openstaat op de tv
-              const isActive = currentAct === activity;
+              // GECORRIGEERD: Matcht nu exact op de packageId string die HA uitspuugt via current_activity
+              const isActive = (packageId && currentAct.includes(packageId.toLowerCase())) ||
+                               (activity && currentAct.includes(activity.toLowerCase())) ||
+                               (typeof appKeyOrObj === 'string' && currentAct.includes(appKeyOrObj.toLowerCase())) ||
+                               (typeof appKeyOrObj === 'object' && appKeyOrObj.id && currentAct.includes(appKeyOrObj.id.toLowerCase()));
 
               return html`
                 <ha-icon-button 
@@ -296,10 +303,10 @@ export class GoogleTVRemoteCard extends LitElement {
       background: #f0f0f0;
     }
     
-    /* ACTIEF: Wanneer de TV aan staat kleurt de knop groen */
+    /* ACTIEF: Kleurt groen als remote state 'on' is */
     .power-btn.active {
-      border-color: var(--state-remote-on-color, #4CAF50);
-      background-color: var(--state-remote-on-color, #4CAF50);
+      border-color: #2ecc71;
+      background-color: #2ecc71;
       color: #fff;
     }
     
@@ -441,10 +448,10 @@ export class GoogleTVRemoteCard extends LitElement {
       background-color: #f0f0f0;
     }
 
-    /* ACTIEF: Wanneer een specifieke app openstaat kleurt de achtergrond mee met de accentkleur */
+    /* ACTIEF: Kleurt blauw als packageId matcht met current_activity */
     .app-row ha-icon-button.active {
-      background-color: var(--accent-color, #378ADD);
-      border-color: var(--accent-color, #378ADD);
+      background-color: #2980b9;
+      border-color: #2980b9;
       color: #fff;
     }
 

@@ -188,8 +188,9 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
         const lblVolume = cfg.label_volume ?? "volume";
         const isOn = this._isOn;
         const currentAct = this._currentActivity.toLowerCase();
-        const configuredApps = cfg?.apps || ['netflix', 'nlziet', 'spotify'];
-        // NIEUW: Controleer of de TV op het Google TV startscherm staat (alleen als de TV aan staat)
+        // GECORRIGEERD: Valt nu terug op een lege array [] als er geen apps in de YAML zijn gedefinieerd
+        const configuredApps = cfg?.apps || [];
+        // Controleer of de TV op het Google TV startscherm staat (alleen als de TV aan staat)
         const isHomeActive = isOn && currentAct.includes("com.google.android.apps.tv.launcherx");
         return b `
       <div class="remote">
@@ -238,8 +239,6 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
               <ha-icon icon="mdi:arrow-u-left-top"></ha-icon>
               ${showButtonLabels ? b `<span>terug</span>` : A}
             </div>
-            
-            <!-- GECORRIGEERD: Voegt dynamisch de 'active' klasse toe als het startscherm open staat -->
             <div class="btn ${isHomeActive ? 'active' : ''} ${!showButtonLabels ? 'no-label' : ''}" @click=${() => this.sendKey("HOME")}>
               <ha-icon icon="mdi:home"></ha-icon>
               ${showButtonLabels ? b `<span>home</span>` : A}
@@ -247,8 +246,8 @@ let GoogleTVRemoteCard = class GoogleTVRemoteCard extends i {
           </div>
         ` : A}
 
-        <!-- APPS BALK -->
-        ${showApps ? b `
+        <!-- APPS BALK (Toont alleen iets als er daadwerkelijk apps in de lijst staan) -->
+        ${showApps && configuredApps.length > 0 ? b `
           <div class="hr"></div>
           <div class="app-row">
             ${configuredApps.map((appKeyOrObj) => {

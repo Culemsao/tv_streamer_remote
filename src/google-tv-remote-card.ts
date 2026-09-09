@@ -109,7 +109,8 @@ export class GoogleTVRemoteCard extends LitElement {
       entity_id: entity, 
       is_volume_muted: !this._muted 
     }); 
-  } 
+  }
+  
   render() { 
     const cfg = this.config; 
     const showTitle      = cfg.show_title      !== false; 
@@ -204,11 +205,13 @@ export class GoogleTVRemoteCard extends LitElement {
 
               if (!activity && !packageId) return html``; 
 
-              // GECORRIGEERD: Matcht nu exact op de packageId string die HA uitspuugt via current_activity
-              const isActive = (packageId && currentAct.includes(packageId.toLowerCase())) ||
+              // GECORRIGEERD: De app kan ALLEEN actief zijn als de TV ook daadwerkelijk aanstaat (isOn === true)
+              const isActive = isOn && (
+                               (packageId && currentAct.includes(packageId.toLowerCase())) ||
                                (activity && currentAct.includes(activity.toLowerCase())) ||
                                (typeof appKeyOrObj === 'string' && currentAct.includes(appKeyOrObj.toLowerCase())) ||
-                               (typeof appKeyOrObj === 'object' && appKeyOrObj.id && currentAct.includes(appKeyOrObj.id.toLowerCase()));
+                               (typeof appKeyOrObj === 'object' && appKeyOrObj.id && currentAct.includes(appKeyOrObj.id.toLowerCase()))
+                               );
 
               return html`
                 <ha-icon-button 
@@ -243,6 +246,7 @@ export class GoogleTVRemoteCard extends LitElement {
       </div>
     `; 
   } 
+
   static styles = css`
     * {
       box-sizing: border-box;
